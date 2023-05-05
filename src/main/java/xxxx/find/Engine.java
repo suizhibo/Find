@@ -34,7 +34,7 @@ public class Engine {
         loadConfig(command);
         loadAllSinks();
         initNeo4jUtils();
-        while (true){
+        while (true) {
             System.out.println("------------");
             System.out.println("指令：");
             System.out.println("exit\t退出程序");
@@ -43,19 +43,25 @@ public class Engine {
             System.out.println("------------");
             Scanner sc = new Scanner(System.in);
             String cmd = sc.next();
-            switch (cmd){
-                case "exit": System.exit(1);
-                case "search": search0();break;
-                case "print": printAllSinks();break;
-                default: System.out.println(String.format("%s 命令无法识别", cmd));break;
-
+            switch (cmd) {
+                case "exit":
+                    System.exit(1);
+                case "search":
+                    search0();
+                    break;
+                case "print":
+                    printAllSinks();
+                    break;
+                default:
+                    System.out.println(String.format("%s 命令无法识别", cmd));
+                    break;
             }
         }
     }
 
-    private void loadAllSinks(){
+    private void loadAllSinks() {
         AtomicInteger num = new AtomicInteger();
-        config.getSinks().forEach((key,value) -> {
+        config.getSinks().forEach((key, value) -> {
             value.forEach(s -> {
                 tempSink.put(String.valueOf(num.get()), key + "@" + s);
                 num.getAndIncrement();
@@ -63,13 +69,13 @@ public class Engine {
         });
     }
 
-    private void printAllSinks(){
-        tempSink.forEach((key,value) -> {
+    private void printAllSinks() {
+        tempSink.forEach((key, value) -> {
             System.out.println(key + ": " + value);
         });
     }
 
-    private void loadConfig(Command command){
+    private void loadConfig(Command command) {
         try {
             String sinksPath = command.getConfigPath();
             config = (Config) YamlUtil.readYaml(sinksPath, Config.class);
@@ -79,56 +85,54 @@ public class Engine {
         }
     }
 
-    private void initNeo4jUtils(){
+    private void initNeo4jUtils() {
         neo4jUtil = new Neo4jUtil(config);
     }
 
-    private void search0(){
+    private void search0() {
         try {
             System.out.println("请选择sink序号");
             printAllSinks();
             Scanner sc = new Scanner(System.in);
             String cmd = sc.next();
-            if(tempSink.containsKey(cmd)){
+            if (tempSink.containsKey(cmd)) {
                 String value = tempSink.get(cmd);
                 System.out.println("你选择了：" + value);
                 search(value.split("@")[1]);
                 return;
             }
             System.out.println(String.format("序号为%s的sink不存在！", cmd));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void search(String sink) throws Exception{
+    private void search(String sink) throws Exception {
         String query = String.format("Match (n) where n.signature contains \"%s\" return n",
                 sink);
         List<Node> results = neo4jUtil.searchNode(query);
-        if(results.size() == 0){
+        if (results.size() == 0) {
             System.out.println("未找到相关sink");
             return;
         }
-        for (Node n:
+        for (Node n :
                 results) {
             recurseSearch(n, DEPTH);
             drawGraph();
             nodes.clear();
             links.clear();
         }
-
-
     }
 
-    private void recurseSearch(Node childrenNode, int depth){
-        String childrenNodeSignature  = (String) childrenNode.getProperties().get("signature");
+    private void recurseSearch(Node childrenNode, int depth) {
+        String childrenNodeSignature = (String) childrenNode.getProperties().get("signature");
         nodes.add(childrenNodeSignature);
-        if(depth == 0)return;
+        if (depth == 0) return;
         String query = String.format("match (a) -[r]-> (b:node{signature: \"%s\"}) return a",
                 childrenNode.getProperties().get("signature"));
         List<Node> parentNodes = neo4jUtil.searchNode(query);
         parentNodes.forEach(n -> {
-            String parentNodeSignature  = (String) n.getProperties().get("signature");
+            String parentNodeSignature = (String) n.getProperties().get("signature");
             nodes.add(parentNodeSignature);
             links.add(String.format(" %s @ %s", parentNodeSignature, childrenNodeSignature));
             recurseSearch(n, depth - 1);
@@ -169,7 +173,5 @@ public class Engine {
         stringBuffer.append("}");
         System.out.println(stringBuffer.toString());
         System.out.println("_______________________________________________");
-
     }
-
-    }
+}
