@@ -1,0 +1,10 @@
+sinks:
+  FastJSON_default: ["<com.alibaba.fastjson.JSONObject: com.alibaba.fastjson.JSONObject parseObject(java.lang.String)>"]
+  FastJSON_1.2.25: ["<com.alibaba.fastjson.JSONObject: java.lang.Object parse(java.lang.String)>"]
+  XStream: ["<com.thoughtworks.xstream.XStream: java.lang.Object fromXML(java.lang.String)>"]
+  Log4j2: ["<org.apache.commons.logging.Log: void info(java.lang.Object)>"]
+
+neo4j:
+  userName: "neo4j"
+  passWord: ""
+  dbUrl: "bolt://localhost:7687"
